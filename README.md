@@ -5,61 +5,100 @@ SIL Identity and group membership manager
 
 This code is originally bootstrapped from the _Node.js Quick Start Application_ provided by [Auth0](https://auth0.com).
 
-## Running the Sample
+## Setup
 
-Install the dependencies.
-
-```bash
+```
+cp .env.example .env
 npm install
 ```
 
-Rename `.env.example` to `.env` and replace the values for `AUTH0_CLIENT_ID`, `AUTH0_DOMAIN`, and `AUTH0_CLIENT_SECRET` with your Auth0 credentials. If you don't yet have an Auth0 account, [sign up](https://auth0.com/signup) for free.
+Configure `.env` with Auth0 credentials:
 
-```bash
-# copy configuration and replace with your own
-cp .env.example .env
+```
+AUTH0_CLIENT_ID=YOUR_CLIENT_ID
+AUTH0_DOMAIN=dev-sillsdev.auth0.com
+AUTH0_CLIENT_SECRET=YOUR_CLIENT_SECRET
+AUTH0_CALLBACK_URL=http://localhost:3000/callback
 ```
 
-Run the app.
+Execute:
 
-```bash
+```
 npm start
 ```
 
-The app will be served at `localhost:3000`.
+## Production
 
-## Running the Sample With Docker
+In the application directory:
 
-In order to run the example with docker you need to have `docker` installed.
+```
+cd silid
+NODE_ENV=production npm install
+```
 
-You also need to set the environment variables as explained [previously](#running-the-sample).
+The _Dockerized_ production is meant to be deployed behind an [`nginx-proxy`/`lets-encrypt`](https://libertyseeds.ca/2017/07/31/Nginx-Proxy-Let-s-Encrypt-Companion-and-Docker-Compose-Version-3/) combo:
 
-Execute in command line `sh exec.sh` to run the Docker in Linux, or `.\exec.ps1` to run the Docker in Windows.
+```
+docker-compose -f docker-compose.prod.yml up -d
+```
 
-## What is Auth0?
+### Seed database:
 
-Auth0 helps you to:
+_Coming soon..._
 
-* Add authentication with [multiple authentication sources](https://docs.auth0.com/identityproviders), either social like **Google, Facebook, Microsoft Account, LinkedIn, GitHub, Twitter, Box, Salesforce, amont others**, or enterprise identity systems like **Windows Azure AD, Google Apps, Active Directory, ADFS or any SAML Identity Provider**.
-* Add authentication through more traditional **[username/password databases](https://docs.auth0.com/mysql-connection-tutorial)**.
-* Add support for **[linking different user accounts](https://docs.auth0.com/link-accounts)** with the same user.
-* Support for generating signed [Json Web Tokens](https://docs.auth0.com/jwt) to call your APIs and **flow the user identity** securely.
-* Analytics of how, when and where users are logging in.
-* Pull data from other sources and add it to the user profile, through [JavaScript rules](https://docs.auth0.com/rules).
+```
+docker-compose -f docker-compose.prod.yml run --rm node node seed.js NODE_ENV=production
+```
 
-## Create a free account in Auth0
+### Database backup and recovery
 
-1. Go to [Auth0](https://auth0.com) and click Sign Up.
-2. Use Google, GitHub or Microsoft Account to login.
+Backup:
 
-## Issue Reporting
+```
+docker-compose -f docker-compose.prod.yml exec mongo mongodump --host mongo --db silid_production --gzip --out ./backups
+tar zcvf silid_production.tar.gz backups/silid_production/
+tar zcvf uploads.tar.gz uploads/
+```
 
-If you have found a bug or if you have a feature request, please report them at this repository issues section. Please do not report security vulnerabilities on the public GitHub issue tracker. The [Responsible Disclosure Program](https://auth0.com/whitehat) details the procedure for disclosing security issues.
+Restore:
 
-## Author
+```
+tar zxvf silid_production.tar.gz
+tar zxvf uploads.tar.gz
+docker-compose -f docker-compose.prod.yml exec mongo mongorestore --gzip --db silid_production backups/silid_production
+```
 
-[Auth0](https://auth0.com)
+Restore to dev:
 
-## License
+```
+docker exec -it dev-mongo mongorestore -d silid_development --gzip backups/silid_production
+```
 
-This project is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
+#### Database Operations
+
+Connect to DB container like this:
+
+```
+docker-compose -f docker-compose.prod.yml exec mongo mongo silid_production
+```
+
+Show databases:
+
+```
+show dbs
+```
+
+Use database:
+
+```
+use silid_production
+```
+
+Show collections:
+
+```
+show collections
+```
+
+
+
