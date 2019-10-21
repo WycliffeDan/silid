@@ -1,6 +1,7 @@
 var express = require('express');
 var path = require('path');
 var logger = require('morgan');
+var models = require('./models');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var dotenv = require('dotenv');
@@ -14,7 +15,9 @@ var usersRouter = require('./routes/users');
 
 dotenv.config();
 
-// Configure Passport to use Auth0
+/**
+ * Passport authentication - Auth0
+ */
 var strategy = new Auth0Strategy(
   {
     domain: process.env.AUTH0_DOMAIN,
@@ -51,24 +54,33 @@ app.set('view engine', 'pug');
 app.use(logger('dev'));
 app.use(cookieParser());
 
-// config express-session
-var sess = {
+/**
+ * Sessions
+ */
+const MongoStore = require('connect-mongo')(session);
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/config/config.json')[env];
+
+const sessionConfig = {
   secret: 'CHANGE THIS SECRET',
-  cookie: {},
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: false,
+  unset: 'destroy',
+  store: new MongoStore({ mongooseConnection: models }),
 };
-
-if (app.get('env') === 'production') {
-  sess.cookie.secure = true; // serve secure cookies, requires https
-}
-
-app.use(session(sess));
+app.use(session(sessionConfig));
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+/**
+ * Static directory
+ */
 app.use(express.static(path.join(__dirname, 'public')));
 
+/**
+ * Flash messages
+ */
 app.use(flash());
 
 // Handle auth failure error messages
@@ -116,6 +128,11 @@ app.use(function (err, req, res, next) {
     message: err.message,
     error: {}
   });
+});
+
+let port = process.env.NODE_ENV === 'production' ? 3000 : 3001;
+app.listen(port, '0.0.0.0', () => {
+  console.log('silid listening on ' + port + '!');
 });
 
 module.exports = app;
