@@ -1,0 +1,28 @@
+{
+  "development": {
+    "username": "silid",
+    "password": "secret",
+    "database": "silid_development",
+    "host": "localhost"
+  },
+  "test": {
+    "username": "silid",
+    "password": "secret",
+    "database": "silid_test",
+    "host": "localhost"
+  },
+  "staging": {
+    "username": "silid",
+    "password": "secret",
+    "database": "silid_staging",
+    "host": "mongo",
+    "dialect": "mongodb"
+  },
+  "production": {
+    "username": "silid",
+    "password": "secret",
+    "database": "silid_production",
+    "host": "mongo",
+    "dialect": "mongodb"
+  }
+}
