@@ -6,7 +6,6 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var dotenv = require('dotenv');
 var passport = require('passport');
-var Auth0Strategy = require('passport-auth0');
 var flash = require('connect-flash');
 var userInViews = require('./lib/middleware/userInViews');
 var authRouter = require('./routes/auth');
@@ -18,13 +17,25 @@ dotenv.config();
 /**
  * Passport authentication - Auth0
  */
-var strategy = new Auth0Strategy(
+var callbackUrl;
+var Strategy;
+if (process.env.NODE_ENV === 'test') {
+  // Tuned for testing
+  callbackUrl = 'http://localhost:3001/callback';
+  Strategy = require('@passport-next/passport-mocked').Strategy;
+}
+else {
+  callbackUrl = process.env.AUTH0_CALLBACK_URL || 'http://localhost:3000/callback';
+  Strategy = require('passport-auth0');
+}
+
+var strategy = new Strategy(
   {
+    name: 'auth0',
     domain: process.env.AUTH0_DOMAIN,
     clientID: process.env.AUTH0_CLIENT_ID,
     clientSecret: process.env.AUTH0_CLIENT_SECRET,
-    callbackURL:
-      process.env.AUTH0_CALLBACK_URL || 'http://localhost:3000/callback'
+    callbackURL: callbackUrl
   },
   function (accessToken, refreshToken, extraParams, profile, done) {
     // accessToken is the token to call Auth0 API (not needed in the most cases)
