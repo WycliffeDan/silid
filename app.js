@@ -130,7 +130,7 @@ app.use(function (err, req, res, next) {
   });
 });
 
-let port = process.env.NODE_ENV === 'production' ? 3000 : 3001;
+let port = process.env.NODE_ENV === 'test' ? 3001 : 3000;
 app.listen(port, '0.0.0.0', () => {
   console.log('silid listening on ' + port + '!');
 });
