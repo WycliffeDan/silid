@@ -21,6 +21,12 @@ AUTH0_CLIENT_SECRET=YOUR_CLIENT_SECRET
 AUTH0_CALLBACK_URL=http://localhost:3000/callback
 ```
 
+Start a MongoDB development server:
+
+```
+docker run --name dev-mongo -p 27017:27017 -d mongo
+```
+
 Execute:
 
 ```
